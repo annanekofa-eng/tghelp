@@ -1,42 +1,34 @@
-# Improved Telegram Support Bot Implementation
+import logging
+import sys
 
-This implementation enhances the previous Telegram support bot by integrating new features such as forum topic support, database integration, and a bidirectional communication channel. Below are the core components of the update:
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
 
-## Features Added
+from config import bot_token, log_level
+from handlers import start, handle_user_message, error
 
-1. **Forum Topics Support**: Users can create, view, and manage forum topics seamlessly.
-2. **Database Integration**: Using SQLAlchemy for ORM, we have integrated support for persistent data storage.
-3. **Bidirectional Communication**: Users can send messages and receive updates in real-time.
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=getattr(logging, log_level, logging.INFO)
+)
+logger = logging.getLogger(__name__)
 
-## Code Example
 
-```python
-import sqlalchemy as sa
+def main() -> None:
+    if not bot_token:
+        logger.error("SUPPORT_BOT_TOKEN environment variable is not set.")
+        print("Error: SUPPORT_BOT_TOKEN is required. Please set it as a secret.")
+        sys.exit(1)
 
-# Database setup
-engine = sa.create_engine('sqlite:///telegram_bot.db')
-Session = sa.orm.sessionmaker(bind=engine)
+    application = ApplicationBuilder().token(bot_token).build()
 
-# Define your database models and logic here
-# Implement methods for handling forum topics and user interactions
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_user_message))
+    application.add_error_handler(error)
+
+    logger.info("Bot started polling...")
+    print("Bot is running and polling for updates...")
+    application.run_polling()
+
 
 if __name__ == '__main__':
-    # Start the bot and listen for messages
-    pass
-```
-
-## Installation Instructions
-1. Clone the repository if you haven't done so already.
-2. Install the required packages:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Run the bot using:
-   ```bash
-   python main.py
-   ```
-
-Make sure to configure your environment variables for the Telegram Bot API token and database connection settings.
-
-## Conclusion
-This update provides a robust foundation for further enhancements and user engagement through diverse communication options.
+    main()

@@ -1,41 +1,26 @@
 from telegram import Update
-from telegram.ext import CommandHandler, MessageHandler, Filters, CallbackContext
+from telegram.ext import ContextTypes
 
-def start(update: Update, context: CallbackContext) -> None:
-    """Send a message when the command /start is issued."""
+from database import DatabaseManager
+
+db = DatabaseManager()
+
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     update.message.reply_text('Hello! Welcome to the bot. How can I assist you today?')
 
-def handle_user_message(update: Update, context: CallbackContext) -> None:
-    """Handle user messages."""
+
+async def handle_user_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_message = update.message.text
-    update.message.reply_text(f'You said: {user_message}')
+    user_id = str(update.effective_user.id)
+    db.save_support_chat_record(user_id, user_message)
+    await update.message.reply_text(f'You said: {user_message}')
 
-def handle_support_response(update: Update, context: CallbackContext) -> None:
-    """Handle support responses."""
+
+async def handle_support_response(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     support_message = update.message.text
-    update.message.reply_text(f'Support: {support_message}')
+    await update.message.reply_text(f'Support: {support_message}')
 
-def error(update: Update, context: CallbackContext) -> None:
-    """Log Errors caused by Updates."""
+
+async def error(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     print(f'Update {update} caused error {context.error}')
-
-def main() -> None:
-    """Start the bot."""
-    # Create the application and pass it your bot's token.
-    application = ApplicationBuilder().token('YOUR_TOKEN').build()
-
-    # Command handlers
-    application.add_handler(CommandHandler("start", start))
-
-    # Message handlers
-    application.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_user_message))
-    application.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_support_response))
-
-    # Error handler
-    application.add_error_handler(error)
-
-    # Start the Bot
-    application.run_polling()
-
-if __name__ == '__main__':
-    main()

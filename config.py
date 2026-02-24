@@ -1,9 +1,6 @@
-# Configuration settings
+import os
 
-# Bot tokens
-bot_token = '8669889995:AAE08bb-RS1R2CiFidzYPGjRSVNL7lwNlLk'
-supergroup_id = '-1003528038321'
-database_name = 'YOUR_DATABASE_NAME'
-
-# Logging level
-log_level = 'INFO'
+bot_token = os.environ.get('SUPPORT_BOT_TOKEN', '')
+supergroup_id = os.environ.get('SUPERGROUP_ID', '')
+database_name = os.environ.get('DB_NAME', 'users.db')
+log_level = os.environ.get('LOG_LEVEL', 'INFO')
